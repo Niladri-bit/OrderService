@@ -8,6 +8,7 @@ import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.assignment.order.service.OrderService.DTO.BookDTO;
 import com.assignment.order.service.OrderService.DTO.CreateOrderDTO;
 import com.assignment.order.service.OrderService.DTO.OrderResponseDTO;
 import com.assignment.order.service.OrderService.DTO.TokenInformationDTO;
@@ -15,6 +16,7 @@ import com.assignment.order.service.OrderService.entities.OrderEntity;
 import com.assignment.order.service.OrderService.exceptions.OrderNotFoundException;
 import com.assignment.order.service.OrderService.exceptions.UnauthorizedUserException;
 import com.assignment.order.service.OrderService.repositories.OrderRepository;
+import  com.assignment.order.service.OrderService.utils.Util;
 
 @Service
 public class OrderService {
@@ -22,22 +24,30 @@ public class OrderService {
 	@Autowired
 	private TokenValidationService tokenValidationService;
 	@Autowired
+	private BookCommunicationService bookCommunicationService;
+	@Autowired
 	private ModelMapper modelMapper;
 	@Autowired
 	private OrderRepository orderRepository;
 	
 	public OrderResponseDTO createOrder(CreateOrderDTO createOrderDTO,String token) {
 		TokenInformationDTO userInfo = getTokenInformation(token);
-		OrderEntity orderEntity = modelMapper.map(createOrderDTO, OrderEntity.class);
-		//to be fetched from book service
-		orderEntity.setBookName("demobook");
-		orderEntity.setTotalPrice(0);
-		
-		orderEntity.setOrderedAt(LocalDateTime.now());
-		orderEntity.setUserId(userInfo.getId());
-		orderEntity.setUserName(userInfo.getUserName());
-		orderEntity.setUserMail(userInfo.getEmail());
-		
+		BookDTO bookDetails = bookCommunicationService.retrieveBookDetailsByBookId(createOrderDTO.getBookId());
+		Util.validateOrderQuantity(createOrderDTO.getQuantity(), bookDetails.getStock());
+		int newStock = bookDetails.getStock() - createOrderDTO.getQuantity();
+		 OrderEntity orderEntity = new OrderEntity();
+		    orderEntity.setBookId(createOrderDTO.getBookId());
+		    orderEntity.setBookName(bookDetails.getTitle());
+		    orderEntity.setQuantity(createOrderDTO.getQuantity());
+		    orderEntity.setTotalPrice(Util.calculateTotalPriceOfOrder(createOrderDTO.getQuantity(), bookDetails.getPrice()));
+		    orderEntity.setOrderedAt(LocalDateTime.now());
+		    orderEntity.setUserId(userInfo.getId());
+		    orderEntity.setUserName(userInfo.getUserName());
+		    orderEntity.setUserMail(userInfo.getEmail());
+
+		    orderEntity = orderRepository.save(orderEntity);
+		    bookCommunicationService.updateStockOfBook(createOrderDTO.getBookId(), newStock);
+
         orderEntity = orderRepository.save(orderEntity);
         return modelMapper.map(orderEntity, OrderResponseDTO.class);
 		
@@ -65,8 +75,10 @@ public class OrderService {
 	    OrderEntity orderEntity = orderRepository.findByIdAndUserId(orderId, userInfo.getId()).orElse(null);
 	    if(orderEntity == null) {
 			throw new OrderNotFoundException(orderId);
-		}                                 
-	    
+		}      
+	    BookDTO bookDetails = bookCommunicationService.retrieveBookDetailsByBookId(orderEntity.getBookId());
+	    int updatedStock = bookDetails.getStock() + orderEntity.getQuantity();
+	    bookCommunicationService.updateStockOfBook(orderEntity.getBookId(), updatedStock);
 	    orderRepository.delete(orderEntity);
 	}
 	
@@ -77,5 +89,6 @@ public class OrderService {
             throw new UnauthorizedUserException("User is not allowed to perform this action");
         }
 	}
+	
 
 }

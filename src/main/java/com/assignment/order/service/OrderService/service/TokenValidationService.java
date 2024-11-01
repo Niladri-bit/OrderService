@@ -21,7 +21,6 @@ public class TokenValidationService {
     private static final String USER_SERVICE_URL = "http://localhost:8080/validateToken";
 
     public TokenInformationDTO retrieveUserDetailsFromToken(String token) {
-    	System.out.println("2");
         HttpHeaders headers = new HttpHeaders();
         headers.set("Authorization", token);
         headers.set("X-INTERNAL", "ROLE_SERVICE_COMMUNICATOR");
@@ -35,7 +34,6 @@ public class TokenValidationService {
                     request,
                     TokenInformationDTO.class
             );
-            System.out.println("1");
             return response.getBody();
 
         } catch ( HttpStatusCodeException e) {
