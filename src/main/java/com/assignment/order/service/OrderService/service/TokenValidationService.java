@@ -23,7 +23,8 @@ public class TokenValidationService {
     public TokenInformationDTO retrieveUserDetailsFromToken(String token) {
     	System.out.println("2");
         HttpHeaders headers = new HttpHeaders();
-        headers.set("Authorization", token); 
+        headers.set("Authorization", token);
+        headers.set("X-INTERNAL", "ROLE_SERVICE_COMMUNICATOR");
 
         HttpEntity<String> request = new HttpEntity<>(headers);
 
