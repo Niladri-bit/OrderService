@@ -70,7 +70,7 @@ public class OrderService {
 		return modelMapper.map(orderEntity, OrderResponseDTO.class);
 	}
 	
-	public void deleteOrder(Long orderId, String token) {
+	public void cancelOrder(Long orderId, String token) {
 	    TokenInformationDTO userInfo = getTokenInformation(token);
 	    OrderEntity orderEntity = orderRepository.findByIdAndUserId(orderId, userInfo.getId()).orElse(null);
 	    if(orderEntity == null) {
@@ -79,7 +79,8 @@ public class OrderService {
 	    BookDTO bookDetails = bookCommunicationService.retrieveBookDetailsByBookId(orderEntity.getBookId());
 	    int updatedStock = bookDetails.getStock() + orderEntity.getQuantity();
 	    bookCommunicationService.updateStockOfBook(orderEntity.getBookId(), updatedStock);
-	    orderRepository.delete(orderEntity);
+	    orderEntity.setCanceledAt(LocalDateTime.now());
+	    orderRepository.save(orderEntity);
 	}
 	
 	private TokenInformationDTO getTokenInformation(String token) {		

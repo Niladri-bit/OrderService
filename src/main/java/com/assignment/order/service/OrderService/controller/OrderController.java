@@ -35,8 +35,8 @@ public class OrderController {
     }
     
     @DeleteMapping(path="/orders/{orderId}")
-    public ResponseEntity<String> deleteMyOrder(@RequestHeader("Authorization") String token,@PathVariable("orderId") Long orderId) {
-    	orderService.deleteOrder(orderId, token);
-    	return ResponseEntity.ok("Order deleted successfully.");
+    public ResponseEntity<String> cancelMyOrder(@RequestHeader("Authorization") String token,@PathVariable("orderId") Long orderId) {
+    	orderService.cancelOrder(orderId, token);
+    	return ResponseEntity.ok("Order canceled successfully.");
     }
 }
