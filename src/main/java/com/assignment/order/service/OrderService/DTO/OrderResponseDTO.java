@@ -2,6 +2,8 @@ package com.assignment.order.service.OrderService.DTO;
 
 import java.time.LocalDateTime;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+
 public class OrderResponseDTO {
 
 	private Long id;
@@ -11,7 +13,8 @@ public class OrderResponseDTO {
     private float totalPrice;
     private LocalDateTime orderedAt;
     private String userName;
-    
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    private LocalDateTime canceledAt;
 	public Long getId() {
 		return id;
 	}
@@ -54,8 +57,14 @@ public class OrderResponseDTO {
 	public void setUserName(String userName) {
 		this.userName = userName;
 	}
+	public LocalDateTime getCanceledAt() {
+		return canceledAt;
+	}
+	public void setCanceledAt(LocalDateTime canceledAt) {
+		this.canceledAt = canceledAt;
+	}
 	public OrderResponseDTO(Long id, Long bookId, String bookName, int quantity, float totalPrice,
-			LocalDateTime orderedAt, String userName) {
+			LocalDateTime orderedAt, String userName, LocalDateTime canceledAt) {
 		super();
 		this.id = id;
 		this.bookId = bookId;
@@ -64,11 +73,14 @@ public class OrderResponseDTO {
 		this.totalPrice = totalPrice;
 		this.orderedAt = orderedAt;
 		this.userName = userName;
+		this.canceledAt = canceledAt;
 	}
 	public OrderResponseDTO() {
 		super();
 		// TODO Auto-generated constructor stub
 	}
+    
+	
     
     
     
